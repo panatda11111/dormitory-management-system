@@ -1,0 +1,334 @@
+<x-app-layout>
+
+    <x-slot name="header">
+
+        <div class="flex items-center justify-between">
+
+            <div>
+
+                <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+                    💳 ประวัติการชำระเงิน
+                </h2>
+
+                <p class="text-sm text-gray-500 mt-1">
+                    รายการประวัติการชำระเงินทั้งหมด
+                </p>
+
+            </div>
+
+        </div>
+
+    </x-slot>
+
+
+    <div class="py-8">
+
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+
+
+            {{-- แจ้งเตือนสำเร็จ --}}
+            @if (session('success'))
+
+                <div class="mb-6 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg">
+                    {{ session('success') }}
+                </div>
+
+            @endif
+
+
+            {{-- แจ้งเตือนข้อผิดพลาด --}}
+            @if ($errors->any())
+
+                <div class="mb-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg">
+
+                    <strong>
+                        ⚠️ กรุณาตรวจสอบข้อมูล
+                    </strong>
+
+                    <ul class="mt-2 list-disc list-inside">
+
+                        @foreach ($errors->all() as $error)
+
+                            <li>
+                                {{ $error }}
+                            </li>
+
+                        @endforeach
+
+                    </ul>
+
+                </div>
+
+            @endif
+
+
+            <div class="bg-white shadow-sm rounded-lg overflow-hidden">
+
+                <div class="p-6">
+
+
+                    {{-- หัวข้อ --}}
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+
+                        <div>
+
+                            <h3 class="text-lg font-semibold text-gray-800">
+                                💳 รายการประวัติการชำระเงิน
+                            </h3>
+
+                            <p class="text-sm text-gray-500 mt-1">
+                                มีประวัติการชำระเงินทั้งหมด
+                                <span class="font-semibold text-gray-700">
+                                    {{ $payments->count() }}
+                                </span>
+                                รายการ
+                            </p>
+
+                        </div>
+
+
+                        <a
+                            href="{{ route('bills.index') }}"
+                            class="inline-flex items-center justify-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition"
+                        >
+                            🧾 ไปที่ใบแจ้งค่าใช้จ่าย
+                        </a>
+
+                    </div>
+
+
+                    @if ($payments->count() > 0)
+
+                        <div class="overflow-x-auto">
+
+                            <table class="w-full border-collapse">
+
+                                <thead>
+
+                                    <tr class="bg-green-600 text-white">
+
+                                        <th class="px-4 py-3 text-center whitespace-nowrap">
+                                            วันที่ชำระ
+                                        </th>
+
+                                        <th class="px-4 py-3 text-left whitespace-nowrap">
+                                            ผู้เช่า
+                                        </th>
+
+                                        <th class="px-4 py-3 text-center whitespace-nowrap">
+                                            ห้อง
+                                        </th>
+
+                                        <th class="px-4 py-3 text-center whitespace-nowrap">
+                                            เดือน
+                                        </th>
+
+                                        <th class="px-4 py-3 text-right whitespace-nowrap">
+                                            จำนวนเงิน
+                                        </th>
+
+                                        <th class="px-4 py-3 text-center whitespace-nowrap">
+                                            วิธีการชำระเงิน
+                                        </th>
+
+                                        <th class="px-4 py-3 text-left whitespace-nowrap">
+                                            หมายเหตุ
+                                        </th>
+
+                                        <th class="px-4 py-3 text-center whitespace-nowrap">
+                                            จัดการ
+                                        </th>
+
+                                    </tr>
+
+                                </thead>
+
+
+                                <tbody>
+
+                                    @foreach ($payments as $payment)
+
+                                        <tr class="border-b hover:bg-gray-50">
+
+
+                                            {{-- วันที่ชำระ --}}
+                                            <td class="px-4 py-3 text-center whitespace-nowrap">
+
+                                                {{ $payment->payment_date?->format('d/m/Y') ?? '-' }}
+
+                                            </td>
+
+
+                                            {{-- ผู้เช่า --}}
+                                            <td class="px-4 py-3 font-medium text-gray-800 whitespace-nowrap">
+
+                                                {{ $payment->bill?->tenant?->name ?? '-' }}
+
+                                            </td>
+
+
+                                            {{-- ห้อง --}}
+                                            <td class="px-4 py-3 text-center font-semibold">
+
+                                                {{ $payment->bill?->room?->room_number ?? '-' }}
+
+                                            </td>
+
+
+                                            {{-- เดือน --}}
+                                            <td class="px-4 py-3 text-center whitespace-nowrap">
+
+                                                {{ $payment->bill?->billing_month ?? '-' }}
+
+                                            </td>
+
+
+                                            {{-- จำนวนเงิน --}}
+                                            <td class="px-4 py-3 text-right font-bold text-green-600 whitespace-nowrap">
+
+                                                {{ number_format((float) ($payment->amount ?? 0), 2) }}
+
+                                                บาท
+
+                                            </td>
+
+
+                                            {{-- วิธีการชำระเงิน --}}
+                                            <td class="px-4 py-3 text-center whitespace-nowrap">
+
+                                                @if ($payment->payment_method === 'เงินสด')
+
+                                                    <span class="inline-flex px-3 py-1 rounded-full text-sm font-semibold bg-green-100 text-green-700">
+                                                        💵 เงินสด
+                                                    </span>
+
+                                                @elseif ($payment->payment_method === 'โอนเงิน')
+
+                                                    <span class="inline-flex px-3 py-1 rounded-full text-sm font-semibold bg-blue-100 text-blue-700">
+                                                        🏦 โอนเงิน
+                                                    </span>
+
+                                                @elseif ($payment->payment_method === 'อื่นๆ')
+
+                                                    <span class="inline-flex px-3 py-1 rounded-full text-sm font-semibold bg-purple-100 text-purple-700">
+                                                        💳 อื่นๆ
+                                                    </span>
+
+                                                @else
+
+                                                    <span class="inline-flex px-3 py-1 rounded-full text-sm font-semibold bg-gray-100 text-gray-700">
+                                                        {{ $payment->payment_method ?? '-' }}
+                                                    </span>
+
+                                                @endif
+
+                                            </td>
+
+
+                                            {{-- หมายเหตุ --}}
+                                            <td class="px-4 py-3">
+
+                                                {{ $payment->description ?? '-' }}
+
+                                            </td>
+
+
+                                            {{-- จัดการ --}}
+                                            <td class="px-4 py-3">
+
+                                                <div class="flex flex-col sm:flex-row items-center justify-center gap-2">
+
+
+                                                    {{-- ดูรายละเอียดการชำระเงิน --}}
+                                                    <a
+                                                        href="{{ route('payments.show', $payment->id) }}"
+                                                        class="inline-flex items-center justify-center px-3 py-1.5 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 transition whitespace-nowrap"
+                                                    >
+                                                        👁️ ดู
+                                                    </a>
+
+
+                                                    {{-- ดูใบแจ้งค่าใช้จ่าย --}}
+                                                    @if ($payment->bill)
+
+                                                        <a
+                                                            href="{{ route('bills.show', $payment->bill->id) }}"
+                                                            class="inline-flex items-center justify-center px-3 py-1.5 bg-gray-600 text-white rounded-md text-sm hover:bg-gray-700 transition whitespace-nowrap"
+                                                        >
+                                                            🧾 ใบแจ้ง
+                                                        </a>
+
+                                                    @endif
+
+
+                                                    {{-- ลบรายการชำระเงิน --}}
+                                                    <form
+                                                        action="{{ route('payments.destroy', $payment->id) }}"
+                                                        method="POST"
+                                                        onsubmit="return confirm('คุณต้องการลบรายการชำระเงินนี้ใช่หรือไม่?');"
+                                                    >
+
+                                                        @csrf
+
+                                                        @method('DELETE')
+
+                                                        <button
+                                                            type="submit"
+                                                            class="inline-flex items-center justify-center px-3 py-1.5 bg-red-600 text-white rounded-md text-sm hover:bg-red-700 transition whitespace-nowrap"
+                                                        >
+                                                            🗑️ ลบ
+                                                        </button>
+
+                                                    </form>
+
+                                                </div>
+
+                                            </td>
+
+                                        </tr>
+
+                                    @endforeach
+
+                                </tbody>
+
+                            </table>
+
+                        </div>
+
+                    @else
+
+                        <div class="text-center py-12 text-gray-500">
+
+                            <div class="text-5xl mb-4">
+                                💳
+                            </div>
+
+                            <p class="text-lg">
+                                ยังไม่มีประวัติการชำระเงิน
+                            </p>
+
+                            <p class="text-sm mt-2">
+                                เมื่อมีการบันทึกการชำระเงิน รายการจะแสดงที่หน้านี้
+                            </p>
+
+                            <a
+                                href="{{ route('bills.index') }}"
+                                class="inline-block mt-4 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                            >
+                                🧾 ไปที่ใบแจ้งค่าใช้จ่าย
+                            </a>
+
+                        </div>
+
+                    @endif
+
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</x-app-layout>

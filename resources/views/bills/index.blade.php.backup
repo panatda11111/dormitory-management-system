@@ -1,0 +1,387 @@
+<x-app-layout>
+
+    <x-slot name="header">
+        <div class="flex items-center justify-between">
+
+            <div>
+                <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+                    🧾 จัดการค่าใช้จ่าย
+                </h2>
+
+                <p class="text-sm text-gray-500 mt-1">
+                    จัดการใบแจ้งค่าใช้จ่ายของผู้เช่า
+                </p>
+            </div>
+
+            <a
+                href="{{ route('bills.create') }}"
+                class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg font-semibold text-sm hover:bg-green-700 transition"
+            >
+                + เพิ่มใบแจ้งค่าใช้จ่าย
+            </a>
+
+        </div>
+    </x-slot>
+
+
+    <div class="py-8">
+
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+
+
+            {{-- แจ้งเตือนสำเร็จ --}}
+            @if (session('success'))
+
+                <div class="mb-6 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg">
+
+                    {{ session('success') }}
+
+                </div>
+
+            @endif
+
+
+            {{-- แจ้งเตือนข้อผิดพลาด --}}
+            @if ($errors->any())
+
+                <div class="mb-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg">
+
+                    <strong>
+                        ⚠️ กรุณาตรวจสอบข้อมูล
+                    </strong>
+
+                    <ul class="mt-2 list-disc list-inside">
+
+                        @foreach ($errors->all() as $error)
+
+                            <li>
+                                {{ $error }}
+                            </li>
+
+                        @endforeach
+
+                    </ul>
+
+                </div>
+
+            @endif
+
+
+            <div class="bg-white shadow-sm rounded-lg overflow-hidden">
+
+                <div class="p-6">
+
+
+                    {{-- หัวข้อ --}}
+                    <div class="flex items-center justify-between mb-6">
+
+                        <div>
+
+                            <h3 class="text-lg font-semibold text-gray-800">
+                                🧾 รายการใบแจ้งค่าใช้จ่าย
+                            </h3>
+
+                            <p class="text-sm text-gray-500 mt-1">
+                                ใบแจ้งค่าใช้จ่ายทั้งหมด
+                                {{ $bills->count() }}
+                                รายการ
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    @if ($bills->count() > 0)
+
+                        <div class="overflow-x-auto">
+
+                            <table class="w-full border-collapse">
+
+                                <thead>
+
+                                    <tr class="bg-green-600 text-white">
+
+                                        <th class="px-4 py-3 text-center whitespace-nowrap">
+                                            เดือน
+                                        </th>
+
+                                        <th class="px-4 py-3 text-left whitespace-nowrap">
+                                            ผู้เช่า
+                                        </th>
+
+                                        <th class="px-4 py-3 text-center whitespace-nowrap">
+                                            ห้อง
+                                        </th>
+
+                                        <th class="px-4 py-3 text-right whitespace-nowrap">
+                                            ค่าเช่า
+                                        </th>
+
+                                        <th class="px-4 py-3 text-right whitespace-nowrap">
+                                            ค่าน้ำ
+                                        </th>
+
+                                        <th class="px-4 py-3 text-right whitespace-nowrap">
+                                            ค่าไฟ
+                                        </th>
+
+                                        <th class="px-4 py-3 text-right whitespace-nowrap">
+                                            ค่าใช้จ่ายอื่น
+                                        </th>
+
+                                        <th class="px-4 py-3 text-right whitespace-nowrap">
+                                            รวม
+                                        </th>
+
+                                        <th class="px-4 py-3 text-center whitespace-nowrap">
+                                            วันครบกำหนด
+                                        </th>
+
+                                        <th class="px-4 py-3 text-center whitespace-nowrap">
+                                            สถานะ
+                                        </th>
+
+                                        <th class="px-4 py-3 text-center whitespace-nowrap">
+                                            จัดการ
+                                        </th>
+
+                                    </tr>
+
+                                </thead>
+
+
+                                <tbody>
+
+                                    @foreach ($bills as $bill)
+
+                                        <tr class="border-b hover:bg-gray-50">
+
+
+                                            {{-- เดือน --}}
+                                            <td class="px-4 py-3 text-center whitespace-nowrap">
+
+                                                {{ $bill->billing_month }}
+
+                                            </td>
+
+
+                                            {{-- ผู้เช่า --}}
+                                            <td class="px-4 py-3 font-medium text-gray-800 whitespace-nowrap">
+
+                                                {{ $bill->tenant?->name ?? '-' }}
+
+                                            </td>
+
+
+                                            {{-- ห้อง --}}
+                                            <td class="px-4 py-3 text-center font-semibold whitespace-nowrap">
+
+                                                {{ $bill->tenant?->room?->room_number ?? '-' }}
+
+                                            </td>
+
+
+                                            {{-- ค่าเช่า --}}
+                                            <td class="px-4 py-3 text-right whitespace-nowrap">
+
+                                                {{ number_format($bill->rent ?? 0, 2) }}
+                                                บาท
+
+                                            </td>
+
+
+                                            {{-- ค่าน้ำ --}}
+                                            <td class="px-4 py-3 text-right whitespace-nowrap">
+
+                                                {{ number_format($bill->water ?? 0, 2) }}
+                                                บาท
+
+                                            </td>
+
+
+                                            {{-- ค่าไฟ --}}
+                                            <td class="px-4 py-3 text-right whitespace-nowrap">
+
+                                                {{ number_format($bill->electricity ?? 0, 2) }}
+                                                บาท
+
+                                            </td>
+
+
+                                            {{-- ค่าใช้จ่ายอื่น --}}
+                                            <td class="px-4 py-3 text-right whitespace-nowrap">
+
+                                                {{ number_format($bill->other_charge ?? 0, 2) }}
+                                                บาท
+
+                                            </td>
+
+
+                                            {{-- ยอดรวม --}}
+                                            <td class="px-4 py-3 text-right font-bold text-gray-800 whitespace-nowrap">
+
+                                                {{ number_format($bill->total ?? 0, 2) }}
+                                                บาท
+
+                                            </td>
+
+
+                                            {{-- วันครบกำหนด --}}
+                                            <td class="px-4 py-3 text-center whitespace-nowrap">
+
+                                                @if ($bill->due_date)
+
+                                                    {{ $bill->due_date->format('d/m/Y') }}
+
+                                                @else
+
+                                                    -
+
+                                                @endif
+
+                                            </td>
+
+
+                                            {{-- สถานะ --}}
+                                            <td class="px-4 py-3 text-center whitespace-nowrap">
+
+
+                                                @if ($bill->status === 'ชำระแล้ว')
+
+                                                    <span class="inline-flex px-3 py-1 rounded-full text-sm font-semibold bg-green-100 text-green-700">
+
+                                                        🟢 ชำระแล้ว
+
+                                                    </span>
+
+
+                                                @elseif ($bill->status === 'ค้างชำระ')
+
+                                                    <span class="inline-flex px-3 py-1 rounded-full text-sm font-semibold bg-red-100 text-red-700">
+
+                                                        🔴 ค้างชำระ
+
+                                                    </span>
+
+
+                                                @elseif ($bill->status === 'เกินกำหนด')
+
+                                                    <span class="inline-flex px-3 py-1 rounded-full text-sm font-semibold bg-orange-100 text-orange-700">
+
+                                                        ⚠️ เกินกำหนด
+
+                                                    </span>
+
+
+                                                @else
+
+                                                    <span class="inline-flex px-3 py-1 rounded-full text-sm font-semibold bg-gray-100 text-gray-700">
+
+                                                        {{ $bill->status ?? 'รอชำระ' }}
+
+                                                    </span>
+
+                                                @endif
+
+
+                                            </td>
+
+
+                                            {{-- จัดการ --}}
+                                            <td class="px-4 py-3 text-center">
+
+                                                <div class="flex items-center justify-center gap-3">
+
+
+                                                    {{-- ดู --}}
+                                                    <a
+                                                        href="{{ route('bills.show', $bill->id) }}"
+                                                        class="text-gray-600 hover:text-gray-900 font-medium"
+                                                    >
+                                                        👁️ ดู
+                                                    </a>
+
+
+                                                    {{-- แก้ไข --}}
+                                                    <a
+                                                        href="{{ route('bills.edit', $bill->id) }}"
+                                                        class="text-blue-600 hover:text-blue-800 font-medium"
+                                                    >
+                                                        ✏️ แก้ไข
+                                                    </a>
+
+
+                                                    {{-- ลบ --}}
+                                                    <form
+                                                        action="{{ route('bills.destroy', $bill->id) }}"
+                                                        method="POST"
+                                                        onsubmit="return confirm('คุณต้องการลบใบแจ้งค่าใช้จ่ายรายการนี้ใช่หรือไม่?')"
+                                                    >
+
+                                                        @csrf
+
+                                                        @method('DELETE')
+
+                                                        <button
+                                                            type="submit"
+                                                            class="text-red-600 hover:text-red-800 font-medium"
+                                                        >
+                                                            🗑️ ลบ
+                                                        </button>
+
+                                                    </form>
+
+
+                                                </div>
+
+                                            </td>
+
+
+                                        </tr>
+
+                                    @endforeach
+
+                                </tbody>
+
+                            </table>
+
+                        </div>
+
+
+                    @else
+
+
+                        {{-- ไม่มีข้อมูล --}}
+                        <div class="text-center py-12 text-gray-500">
+
+                            <div class="text-5xl mb-4">
+                                🧾
+                            </div>
+
+                            <p class="text-lg">
+                                ยังไม่มีใบแจ้งค่าใช้จ่าย
+                            </p>
+
+                            <a
+                                href="{{ route('bills.create') }}"
+                                class="inline-block mt-4 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+                            >
+                                + เพิ่มใบแจ้งค่าใช้จ่ายรายการแรก
+                            </a>
+
+                        </div>
+
+
+                    @endif
+
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</x-app-layout>

@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>ระบบมิเตอร์น้ำและไฟ - ระบบบริหารจัดการหอพัก</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 30px 20px;
+            font-family: Arial, Tahoma, sans-serif;
+            background: #f4f6f9;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: auto;
+        }
+
+        .card {
+            background: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+        }
+
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        h1 {
+            margin: 0;
+            color: #198754;
+            font-size: 28px;
+        }
+
+        .button {
+            display: inline-block;
+            padding: 11px 18px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 15px;
+            border: none;
+            cursor: pointer;
+        }
+
+        .add {
+            background: #198754;
+            color: #fff;
+        }
+
+        .add:hover {
+            background: #157347;
+        }
+
+        .back {
+            background: #6c757d;
+            color: #fff;
+        }
+
+        .back:hover {
+            background: #5c636a;
+        }
+
+        .success {
+            background: #d1e7dd;
+            color: #0f5132;
+            padding: 14px;
+            border-radius: 7px;
+            margin-bottom: 20px;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #842029;
+            padding: 14px;
+            border-radius: 7px;
+            margin-bottom: 20px;
+        }
+
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .summary-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid #e9ecef;
+        }
+
+        .summary-card .label {
+            font-size: 16px;
+            color: #555;
+        }
+
+        .summary-card strong {
+            display: block;
+            font-size: 26px;
+            margin: 8px 0;
+            color: #198754;
+        }
+
+        .summary-card.water-card strong {
+            color: #0d6efd;
+        }
+
+        .summary-card.electricity-card strong {
+            color: #dc3545;
+        }
+
+        .table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            border-radius: 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1200px;
+            background: #fff;
+        }
+
+        th,
+        td {
+            padding: 12px 10px;
+            border: 1px solid #dee2e6;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        th {
+            background: #198754;
+            color: #fff;
+            white-space: nowrap;
+            font-weight: bold;
+        }
+
+        tbody tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        tbody tr:hover {
+            background: #e9f7ef;
+        }
+
+        .number {
+            font-weight: bold;
+        }
+
+        .water {
+            color: #0d6efd;
+        }
+
+        .electricity {
+            color: #dc3545;
+        }
+
+        .total {
+            color: #198754;
+            font-weight: bold;
+        }
+
+        .actions {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .action-button {
+            display: inline-block;
+            padding: 7px 10px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 13px;
+            border: none;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .view {
+            background: #0d6efd;
+            color: #fff;
+        }
+
+        .view:hover {
+            background: #0b5ed7;
+        }
+
+        .edit {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        .edit:hover {
+            background: #ffca2c;
+        }
+
+        .delete {
+            background: #dc3545;
+            color: #fff;
+        }
+
+        .delete:hover {
+            background: #bb2d3b;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 50px 20px;
+            color: #777;
+            border: 1px dashed #ccc;
+            border-radius: 8px;
+        }
+
+        .empty-icon {
+            font-size: 45px;
+            margin-bottom: 10px;
+        }
+
+        .month {
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        .tenant-name {
+            font-weight: 500;
+        }
+
+        .room-number {
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        @media (max-width: 800px) {
+
+            body {
+                padding: 15px 10px;
+            }
+
+            .card {
+                padding: 20px 15px;
+            }
+
+            .top-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .top-bar h1 {
+                font-size: 24px;
+                text-align: center;
+            }
+
+            .top-buttons {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .button {
+                text-align: center;
+                width: 100%;
+            }
+
+            .summary {
+                grid-template-columns: 1fr;
+            }
+
+            table {
+                min-width: 1200px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="card">
+
+        {{-- ส่วนหัว --}}
+        <div class="top-bar">
+
+            <h1>
+                📊 ระบบมิเตอร์น้ำและไฟ
+            </h1>
+
+            <div class="top-buttons">
+
+                <a
+                    href="{{ route('meter-readings.create') }}"
+                    class="button add"
+                >
+                    ➕ เพิ่มข้อมูลมิเตอร์
+                </a>
+
+                <a
+                    href="{{ route('dashboard') }}"
+                    class="button back"
+                >
+                    🏠 Dashboard
+                </a>
+
+            </div>
+
+        </div>
+
+
+        {{-- ข้อความสำเร็จ --}}
+        @if (session('success'))
+
+            <div class="success">
+                ✓ {{ session('success') }}
+            </div>
+
+        @endif
+
+
+        {{-- ข้อความผิดพลาด --}}
+        @if (session('error'))
+
+            <div class="error">
+                ⚠️ {{ session('error') }}
+            </div>
+
+        @endif
+
+
+        {{-- สรุปข้อมูล --}}
+        <div class="summary">
+
+            {{-- จำนวนรายการ --}}
+            <div class="summary-card">
+
+                <div class="label">
+                    📊 รายการมิเตอร์
+                </div>
+
+                <strong>
+                    {{ $meterReadings->count() }}
+                </strong>
+
+                <div>
+                    รายการ
+                </div>
+
+            </div>
+
+
+            {{-- ค่าน้ำรวม --}}
+            <div class="summary-card water-card">
+
+                <div class="label">
+                    💧 ค่าน้ำรวม
+                </div>
+
+                <strong>
+                    {{ number_format($meterReadings->sum('water_charge'), 2) }}
+                </strong>
+
+                <div>
+                    บาท
+                </div>
+
+            </div>
+
+
+            {{-- ค่าไฟรวม --}}
+            <div class="summary-card electricity-card">
+
+                <div class="label">
+                    ⚡ ค่าไฟรวม
+                </div>
+
+                <strong>
+                    {{ number_format($meterReadings->sum('electricity_charge'), 2) }}
+                </strong>
+
+                <div>
+                    บาท
+                </div>
+
+            </div>
+
+        </div>
+
+
+        {{-- ตารางข้อมูล --}}
+        @if ($meterReadings->count() > 0)
+
+            <div class="table-wrapper">
+
+                <table>
+
+                    <thead>
+
+                        <tr>
+
+                            <th>เดือน</th>
+                            <th>ผู้เช่า</th>
+                            <th>ห้อง</th>
+
+                            <th>น้ำก่อน</th>
+                            <th>น้ำปัจจุบัน</th>
+                            <th>ใช้น้ำ</th>
+                            <th>ค่าน้ำ</th>
+
+                            <th>ไฟก่อน</th>
+                            <th>ไฟปัจจุบัน</th>
+                            <th>ใช้ไฟ</th>
+                            <th>ค่าไฟ</th>
+
+                            <th>รวม</th>
+                            <th>จัดการ</th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                    @foreach ($meterReadings as $meter)
+
+                        <tr>
+
+                            {{-- เดือน --}}
+                            <td class="month">
+                                {{ $meter->billing_month }}
+                            </td>
+
+
+                            {{-- ผู้เช่า --}}
+                            <td class="tenant-name">
+
+                                {{ $meter->tenant->name ?? '-' }}
+
+                            </td>
+
+
+                            {{-- ห้อง --}}
+                            <td class="room-number">
+
+                                @if ($meter->room)
+
+                                    ห้อง {{ $meter->room->room_number }}
+
+                                @else
+
+                                    -
+
+                                @endif
+
+                            </td>
+
+
+                            {{-- น้ำก่อน --}}
+                            <td>
+                                {{ number_format($meter->water_previous, 2) }}
+                            </td>
+
+
+                            {{-- น้ำปัจจุบัน --}}
+                            <td>
+                                {{ number_format($meter->water_current, 2) }}
+                            </td>
+
+
+                            {{-- ใช้น้ำ --}}
+                            <td class="water number">
+
+                                {{ number_format($meter->water_unit, 2) }}
+
+                                หน่วย
+
+                            </td>
+
+
+                            {{-- ค่าน้ำ --}}
+                            <td class="water number">
+
+                                {{ number_format($meter->water_charge, 2) }}
+
+                                บาท
+
+                            </td>
+
+
+                            {{-- ไฟก่อน --}}
+                            <td>
+                                {{ number_format($meter->electricity_previous, 2) }}
+                            </td>
+
+
+                            {{-- ไฟปัจจุบัน --}}
+                            <td>
+                                {{ number_format($meter->electricity_current, 2) }}
+                            </td>
+
+
+                            {{-- ใช้ไฟ --}}
+                            <td class="electricity number">
+
+                                {{ number_format($meter->electricity_unit, 2) }}
+
+                                หน่วย
+
+                            </td>
+
+
+                            {{-- ค่าไฟ --}}
+                            <td class="electricity number">
+
+                                {{ number_format($meter->electricity_charge, 2) }}
+
+                                บาท
+
+                            </td>
+
+
+                            {{-- รวม --}}
+                            <td class="total">
+
+                                {{ number_format($meter->total_charge, 2) }}
+
+                                บาท
+
+                            </td>
+
+
+                            {{-- จัดการ --}}
+                            <td>
+
+                                <div class="actions">
+
+                                    {{-- ดู --}}
+                                    <a
+                                        href="{{ route('meter-readings.show', $meter->id) }}"
+                                        class="action-button view"
+                                    >
+                                        👁️ ดู
+                                    </a>
+
+
+                                    {{-- แก้ไข --}}
+                                    <a
+                                        href="{{ route('meter-readings.edit', $meter->id) }}"
+                                        class="action-button edit"
+                                    >
+                                        ✏️ แก้ไข
+                                    </a>
+
+
+                                    {{-- ลบ --}}
+                                    <form
+                                        action="{{ route('meter-readings.destroy', $meter->id) }}"
+                                        method="POST"
+                                        onsubmit="return confirm('ต้องการลบข้อมูลมิเตอร์นี้หรือไม่?');"
+                                        style="display: inline;"
+                                    >
+
+                                        @csrf
+
+                                        @method('DELETE')
+
+                                        <button
+                                            type="submit"
+                                            class="action-button delete"
+                                        >
+                                            🗑️ ลบ
+                                        </button>
+
+                                    </form>
+
+                                </div>
+
+                            </td>
+
+                        </tr>
+
+                    @endforeach
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        @else
+
+            <div class="empty">
+
+                <div class="empty-icon">
+                    📊
+                </div>
+
+                <div>
+                    ยังไม่มีข้อมูลมิเตอร์
+                </div>
+
+                <br>
+
+                <a
+                    href="{{ route('meter-readings.create') }}"
+                    class="button add"
+                >
+                    ➕ เพิ่มข้อมูลมิเตอร์รายการแรก
+                </a>
+
+            </div>
+
+        @endif
+
+    </div>
+
+</div>
+
+</body>
+
+</html>

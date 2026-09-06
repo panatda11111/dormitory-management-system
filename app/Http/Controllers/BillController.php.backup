@@ -1,0 +1,389 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Bill;
+use App\Models\Tenant;
+use App\Models\MeterReading;
+use Illuminate\Http\Request;
+
+class BillController extends Controller
+{
+    /**
+     * แสดงรายการใบแจ้งค่าใช้จ่าย
+     */
+    public function index()
+    {
+        $bills = Bill::with([
+            'tenant',
+            'room'
+        ])
+        ->orderByDesc('due_date')
+        ->orderByDesc('id')
+        ->get();
+
+        return view('bills.index', compact('bills'));
+    }
+
+    /**
+     * แสดงหน้าเพิ่มใบแจ้งค่าใช้จ่าย
+     */
+    public function create()
+    {
+        $tenants = Tenant::with('room')
+            ->where('status', 'พักอาศัย')
+            ->orderBy('name')
+            ->get();
+
+        $meterReadings = MeterReading::with([
+            'tenant',
+            'room'
+        ])
+        ->orderByDesc('id')
+        ->get();
+
+        return view(
+            'bills.create',
+            compact('tenants', 'meterReadings')
+        );
+    }
+
+    /**
+     * บันทึกใบแจ้งค่าใช้จ่าย
+     */
+    public function store(Request $request)
+    {
+        $validated = $this->validateBill($request);
+
+        // ตรวจสอบผู้เช่า
+        $tenant = Tenant::with('room')
+            ->where('status', 'พักอาศัย')
+            ->findOrFail($validated['tenant_id']);
+
+        // ตรวจสอบว่าห้องตรงกับผู้เช่า
+        if ((int) $tenant->room_id !== (int) $validated['room_id']) {
+            return back()
+                ->withInput()
+                ->withErrors([
+                    'room_id' => 'ห้องพักไม่ตรงกับห้องของผู้เช่าที่เลือก'
+                ]);
+        }
+
+        // ดึงข้อมูลมิเตอร์
+        $meterReading = $this->getMeterReading($validated);
+
+        /*
+        |--------------------------------------------------------------------------
+        | บังคับใช้ค่าน้ำและค่าไฟจากมิเตอร์
+        |--------------------------------------------------------------------------
+        */
+        if ($meterReading) {
+            $validated['water'] = (float) $meterReading->water_charge;
+            $validated['electricity'] = (float) $meterReading->electricity_charge;
+        } else {
+            return back()
+                ->withInput()
+                ->withErrors([
+                    'billing_month' =>
+                        'ไม่พบข้อมูลมิเตอร์ของผู้เช่า ห้องพัก และเดือนที่เลือก กรุณาตรวจสอบเดือนหรือบันทึกข้อมูลมิเตอร์ก่อน'
+                ]);
+        }
+
+        // ค่าใช้จ่ายอื่น
+        $validated['other_charge'] =
+            (float) ($validated['other_charge'] ?? 0);
+
+        // คำนวณยอดรวม
+        $validated['total'] =
+            $this->calculateTotal($validated);
+
+        // ตรวจสอบบิลซ้ำ
+        if ($this->billExists($validated)) {
+            return back()
+                ->withInput()
+                ->withErrors([
+                    'billing_month' =>
+                        'ผู้เช่ารายนี้มีใบแจ้งค่าใช้จ่ายของเดือนนี้แล้ว'
+                ]);
+        }
+
+        // สร้างบิล
+        Bill::create($validated);
+
+        return redirect()
+            ->route('bills.index')
+            ->with(
+                'success',
+                'สร้างใบแจ้งค่าใช้จ่ายเรียบร้อยแล้ว'
+            );
+    }
+
+    /**
+     * แสดงรายละเอียดบิล
+     */
+    public function show(string $id)
+    {
+        $bill = Bill::with([
+            'tenant',
+            'room'
+        ])->findOrFail($id);
+
+        return view('bills.show', compact('bill'));
+    }
+
+    /**
+     * แสดงหน้าแก้ไขบิล
+     */
+    public function edit(string $id)
+    {
+        $bill = Bill::findOrFail($id);
+
+        $tenants = Tenant::with('room')
+            ->where('status', 'พักอาศัย')
+            ->orderBy('name')
+            ->get();
+
+        $meterReadings = MeterReading::with([
+            'tenant',
+            'room'
+        ])
+        ->orderByDesc('id')
+        ->get();
+
+        return view(
+            'bills.edit',
+            compact(
+                'bill',
+                'tenants',
+                'meterReadings'
+            )
+        );
+    }
+
+    /**
+     * อัปเดตบิล
+     */
+    public function update(
+        Request $request,
+        string $id
+    ) {
+        $bill = Bill::findOrFail($id);
+
+        $validated = $this->validateBill($request);
+
+        // ตรวจสอบผู้เช่า
+        $tenant = Tenant::with('room')
+            ->where('status', 'พักอาศัย')
+            ->findOrFail($validated['tenant_id']);
+
+        // ตรวจสอบห้อง
+        if ((int) $tenant->room_id !== (int) $validated['room_id']) {
+            return back()
+                ->withInput()
+                ->withErrors([
+                    'room_id' =>
+                        'ห้องพักไม่ตรงกับห้องของผู้เช่าที่เลือก'
+                ]);
+        }
+
+        // ดึงมิเตอร์
+        $meterReading = $this->getMeterReading($validated);
+
+        /*
+        |--------------------------------------------------------------------------
+        | ใช้ค่าน้ำและค่าไฟจากมิเตอร์
+        |--------------------------------------------------------------------------
+        */
+        if ($meterReading) {
+            $validated['water'] =
+                (float) $meterReading->water_charge;
+
+            $validated['electricity'] =
+                (float) $meterReading->electricity_charge;
+        } else {
+            return back()
+                ->withInput()
+                ->withErrors([
+                    'billing_month' =>
+                        'ไม่พบข้อมูลมิเตอร์ของผู้เช่า ห้องพัก และเดือนที่เลือก'
+                ]);
+        }
+
+        // ค่าใช้จ่ายอื่น
+        $validated['other_charge'] =
+            (float) ($validated['other_charge'] ?? 0);
+
+        // คำนวณยอดรวมใหม่
+        $validated['total'] =
+            $this->calculateTotal($validated);
+
+        // ตรวจสอบบิลซ้ำ
+        if ($this->billExists($validated, $bill->id)) {
+            return back()
+                ->withInput()
+                ->withErrors([
+                    'billing_month' =>
+                        'ผู้เช่ารายนี้มีใบแจ้งค่าใช้จ่ายของเดือนนี้แล้ว'
+                ]);
+        }
+
+        // อัปเดต
+        $bill->update($validated);
+
+        return redirect()
+            ->route('bills.index')
+            ->with(
+                'success',
+                'แก้ไขใบแจ้งค่าใช้จ่ายเรียบร้อยแล้ว'
+            );
+    }
+
+    /**
+     * ลบบิล
+     */
+    public function destroy(string $id)
+    {
+        $bill = Bill::findOrFail($id);
+
+        $bill->delete();
+
+        return redirect()
+            ->route('bills.index')
+            ->with(
+                'success',
+                'ลบใบแจ้งค่าใช้จ่ายเรียบร้อยแล้ว'
+            );
+    }
+
+    /**
+     * Validation
+     */
+    private function validateBill(Request $request): array
+    {
+        return $request->validate([
+            'tenant_id' => [
+                'required',
+                'exists:tenants,id'
+            ],
+
+            'room_id' => [
+                'required',
+                'exists:rooms,id'
+            ],
+
+            'billing_month' => [
+                'required',
+                'string',
+                'max:50'
+            ],
+
+            'rent' => [
+                'required',
+                'numeric',
+                'min:0'
+            ],
+
+            'water' => [
+                'nullable',
+                'numeric',
+                'min:0'
+            ],
+
+            'electricity' => [
+                'nullable',
+                'numeric',
+                'min:0'
+            ],
+
+            'other_charge' => [
+                'nullable',
+                'numeric',
+                'min:0'
+            ],
+
+            'due_date' => [
+                'required',
+                'date'
+            ],
+
+            'status' => [
+                'required',
+                'in:ค้างชำระ,ชำระแล้ว,เกินกำหนด'
+            ],
+
+            'description' => [
+                'nullable',
+                'string'
+            ],
+        ]);
+    }
+
+    /**
+     * ค้นหาข้อมูลมิเตอร์
+     */
+    private function getMeterReading(array $data): ?MeterReading
+    {
+        return MeterReading::where(
+            'tenant_id',
+            $data['tenant_id']
+        )
+        ->where(
+            'room_id',
+            $data['room_id']
+        )
+        ->where(
+            'billing_month',
+            $data['billing_month']
+        )
+        ->latest('id')
+        ->first();
+    }
+
+    /**
+     * คำนวณยอดรวม
+     */
+    private function calculateTotal(array $data): float
+    {
+        return round(
+            (float) ($data['rent'] ?? 0)
+            +
+            (float) ($data['water'] ?? 0)
+            +
+            (float) ($data['electricity'] ?? 0)
+            +
+            (float) ($data['other_charge'] ?? 0),
+            2
+        );
+    }
+
+    /**
+     * ตรวจสอบบิลซ้ำ
+     */
+    private function billExists(
+        array $data,
+        ?int $ignoreId = null
+    ): bool {
+        $query = Bill::where(
+            'tenant_id',
+            $data['tenant_id']
+        )
+        ->where(
+            'room_id',
+            $data['room_id']
+        )
+        ->where(
+            'billing_month',
+            $data['billing_month']
+        );
+
+        if ($ignoreId !== null) {
+            $query->where(
+                'id',
+                '!=',
+                $ignoreId
+            );
+        }
+
+        return $query->exists();
+    }
+}

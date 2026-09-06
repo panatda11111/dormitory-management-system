@@ -1,0 +1,606 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+/* =========================================================
+   ระบบบริหารจัดการหอพักออนไลน์
+   Global Theme
+========================================================= */
+
+@layer base {
+
+    html {
+        font-family: 'Figtree', 'Tahoma', 'Arial', sans-serif;
+        scroll-behavior: smooth;
+        -webkit-text-size-adjust: 100%;
+    }
+
+    body {
+        margin: 0;
+        min-width: 320px;
+        background-color: #f5f7f9;
+        color: #1f2937;
+
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+
+    *,
+    *::before,
+    *::after {
+        box-sizing: border-box;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+        font-family: inherit;
+    }
+
+    button,
+    a {
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    a {
+        transition:
+            color 200ms ease,
+            background-color 200ms ease,
+            border-color 200ms ease,
+            box-shadow 200ms ease,
+            opacity 200ms ease,
+            transform 200ms ease;
+    }
+
+    input::placeholder,
+    textarea::placeholder {
+        color: #9ca3af;
+        opacity: 1;
+    }
+
+    img,
+    svg {
+        max-width: 100%;
+    }
+
+}
+
+
+/* =========================================================
+   Global Components
+========================================================= */
+
+@layer components {
+
+    /* =====================================================
+       Card
+    ===================================================== */
+
+    .dorm-card {
+        @apply bg-white
+               rounded-2xl
+               border border-gray-200
+               shadow-sm;
+    }
+
+
+    /* =====================================================
+       Page Title
+    ===================================================== */
+
+    .dorm-title {
+        @apply text-xl
+               sm:text-2xl
+               font-bold
+               tracking-tight
+               text-gray-900;
+    }
+
+    .dorm-subtitle {
+        @apply mt-1
+               text-sm
+               leading-6
+               text-gray-500;
+    }
+
+
+    /* =====================================================
+       Primary Button
+    ===================================================== */
+
+    .btn-primary {
+        @apply inline-flex
+               items-center
+               justify-center
+               gap-1.5
+               px-4
+               py-2.5
+               rounded-lg
+               bg-green-600
+               border border-transparent
+               text-sm
+               text-white
+               font-semibold
+               shadow-sm
+               transition
+               duration-200
+               hover:bg-green-700
+               hover:shadow
+               focus:outline-none
+               focus:ring-2
+               focus:ring-green-500
+               focus:ring-offset-2
+               active:bg-green-800
+               disabled:cursor-not-allowed
+               disabled:opacity-50;
+    }
+
+
+    /* =====================================================
+       Secondary Button
+    ===================================================== */
+
+    .btn-secondary {
+        @apply inline-flex
+               items-center
+               justify-center
+               gap-1.5
+               px-4
+               py-2.5
+               rounded-lg
+               bg-gray-100
+               border border-gray-200
+               text-sm
+               text-gray-700
+               font-semibold
+               transition
+               duration-200
+               hover:bg-gray-200
+               hover:text-gray-900
+               focus:outline-none
+               focus:ring-2
+               focus:ring-gray-300
+               focus:ring-offset-2;
+    }
+
+
+    /* =====================================================
+       Danger Button
+    ===================================================== */
+
+    .btn-danger {
+        @apply inline-flex
+               items-center
+               justify-center
+               gap-1.5
+               px-4
+               py-2.5
+               rounded-lg
+               bg-red-600
+               border border-transparent
+               text-sm
+               text-white
+               font-semibold
+               shadow-sm
+               transition
+               duration-200
+               hover:bg-red-700
+               hover:shadow
+               focus:outline-none
+               focus:ring-2
+               focus:ring-red-500
+               focus:ring-offset-2
+               active:bg-red-800
+               disabled:cursor-not-allowed
+               disabled:opacity-50;
+    }
+
+
+    /* =====================================================
+       Form Input
+    ===================================================== */
+
+    .form-input-dorm {
+        @apply w-full
+               rounded-lg
+               border-gray-300
+               bg-white
+               text-sm
+               text-gray-800
+               shadow-sm
+               transition
+               duration-200
+               focus:border-green-500
+               focus:ring-green-500
+               focus:ring-1;
+    }
+
+
+    /* =====================================================
+       Table Container
+       ใช้ครอบ table เพื่อให้เลื่อนแนวนอนได้บนมือถือ
+    ===================================================== */
+
+    .dorm-table-wrapper {
+        @apply w-full
+               overflow-x-auto
+               rounded-xl;
+        -webkit-overflow-scrolling: touch;
+    }
+
+
+    /* =====================================================
+       Table
+    ===================================================== */
+
+    .dorm-table {
+        @apply w-full
+               min-w-full
+               divide-y
+               divide-gray-200;
+    }
+
+    .dorm-table thead {
+        @apply bg-gray-50;
+    }
+
+    .dorm-table th {
+        @apply px-5
+               py-3.5
+               text-left
+               text-xs
+               font-bold
+               text-gray-600
+               tracking-wide
+               whitespace-nowrap;
+    }
+
+    .dorm-table td {
+        @apply px-5
+               py-4
+               text-sm
+               text-gray-700
+               align-middle;
+    }
+
+    .dorm-table tbody {
+        @apply divide-y
+               divide-gray-100;
+    }
+
+    .dorm-table tbody tr {
+        @apply bg-white
+               transition
+               duration-150
+               hover:bg-gray-50;
+    }
+
+
+    /* =====================================================
+       Table - Name
+    ===================================================== */
+
+    .dorm-table .table-name {
+        @apply font-semibold
+               text-gray-900;
+    }
+
+
+    /* =====================================================
+       Table - Muted Text
+    ===================================================== */
+
+    .dorm-table .table-muted {
+        @apply text-gray-500;
+    }
+
+
+    /* =====================================================
+       Table Action - Edit
+    ===================================================== */
+
+    .table-action-edit {
+        @apply inline-flex
+               items-center
+               justify-center
+               gap-1
+               rounded-lg
+               bg-blue-50
+               px-3
+               py-1.5
+               text-xs
+               font-semibold
+               text-blue-700
+               transition
+               duration-200
+               hover:bg-blue-100
+               hover:text-blue-800
+               focus:outline-none
+               focus:ring-2
+               focus:ring-blue-500
+               focus:ring-offset-1;
+    }
+
+
+    /* =====================================================
+       Table Action - Delete
+    ===================================================== */
+
+    .table-action-delete {
+        @apply inline-flex
+               items-center
+               justify-center
+               gap-1
+               rounded-lg
+               bg-red-50
+               px-3
+               py-1.5
+               text-xs
+               font-semibold
+               text-red-700
+               transition
+               duration-200
+               hover:bg-red-100
+               hover:text-red-800
+               focus:outline-none
+               focus:ring-2
+               focus:ring-red-500
+               focus:ring-offset-1;
+    }
+
+
+    /* =====================================================
+       Status - Success
+    ===================================================== */
+
+    .status-success {
+        @apply inline-flex
+               items-center
+               gap-1
+               px-2.5
+               py-1
+               rounded-full
+               text-xs
+               font-semibold
+               whitespace-nowrap
+               bg-green-100
+               text-green-700;
+    }
+
+
+    /* =====================================================
+       Status - Warning
+    ===================================================== */
+
+    .status-warning {
+        @apply inline-flex
+               items-center
+               gap-1
+               px-2.5
+               py-1
+               rounded-full
+               text-xs
+               font-semibold
+               whitespace-nowrap
+               bg-yellow-100
+               text-yellow-700;
+    }
+
+
+    /* =====================================================
+       Status - Danger
+    ===================================================== */
+
+    .status-danger {
+        @apply inline-flex
+               items-center
+               gap-1
+               px-2.5
+               py-1
+               rounded-full
+               text-xs
+               font-semibold
+               whitespace-nowrap
+               bg-red-100
+               text-red-700;
+    }
+
+
+    /* =====================================================
+       Status - Info
+    ===================================================== */
+
+    .status-info {
+        @apply inline-flex
+               items-center
+               gap-1
+               px-2.5
+               py-1
+               rounded-full
+               text-xs
+               font-semibold
+               whitespace-nowrap
+               bg-blue-100
+               text-blue-700;
+    }
+
+
+    /* =====================================================
+       Alert - Success
+    ===================================================== */
+
+    .dorm-alert-success {
+        @apply rounded-xl
+               border
+               border-green-200
+               bg-green-50
+               px-4
+               py-3
+               text-sm
+               leading-6
+               text-green-700;
+    }
+
+
+    /* =====================================================
+       Alert - Danger
+    ===================================================== */
+
+    .dorm-alert-danger {
+        @apply rounded-xl
+               border
+               border-red-200
+               bg-red-50
+               px-4
+               py-3
+               text-sm
+               leading-6
+               text-red-700;
+    }
+
+
+    /* =====================================================
+       Alert - Warning
+    ===================================================== */
+
+    .dorm-alert-warning {
+        @apply rounded-xl
+               border
+               border-yellow-200
+               bg-yellow-50
+               px-4
+               py-3
+               text-sm
+               leading-6
+               text-yellow-700;
+    }
+
+
+    /* =====================================================
+       Alert - Info
+    ===================================================== */
+
+    .dorm-alert-info {
+        @apply rounded-xl
+               border
+               border-blue-200
+               bg-blue-50
+               px-4
+               py-3
+               text-sm
+               leading-6
+               text-blue-700;
+    }
+
+
+    /* =====================================================
+       Divider
+    ===================================================== */
+
+    .dorm-divider {
+        @apply border-t
+               border-gray-200;
+    }
+
+
+    /* =====================================================
+       Empty State
+    ===================================================== */
+
+    .dorm-empty {
+        @apply px-5
+               py-14
+               text-center
+               sm:px-6;
+    }
+
+}
+
+
+/* =========================================================
+   Responsive - Tablet
+========================================================= */
+
+@media (max-width: 1023px) {
+
+    .dorm-table-wrapper {
+        overflow-x: auto;
+    }
+
+    .dorm-table {
+        min-width: 900px;
+    }
+
+    .dorm-table th,
+    .dorm-table td {
+        white-space: nowrap;
+    }
+
+}
+
+
+/* =========================================================
+   Responsive - Mobile
+========================================================= */
+
+@media (max-width: 640px) {
+
+    .dorm-title {
+        font-size: 1.25rem;
+        line-height: 1.75rem;
+    }
+
+    .dorm-subtitle {
+        font-size: 0.875rem;
+        line-height: 1.5rem;
+    }
+
+    .dorm-table {
+        min-width: 900px;
+        font-size: 0.875rem;
+    }
+
+    .dorm-table th {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+        padding-top: 0.75rem;
+        padding-bottom: 0.75rem;
+    }
+
+    .dorm-table td {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+        padding-top: 0.75rem;
+        padding-bottom: 0.75rem;
+    }
+
+    .btn-primary,
+    .btn-secondary,
+    .btn-danger {
+        min-height: 42px;
+    }
+
+}
+
+
+/* =========================================================
+   Accessibility
+========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+    html {
+        scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+    }
+
+}

@@ -1,0 +1,452 @@
+<x-app-layout>
+
+<x-slot name="header">
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+            <h2 class="dorm-title">
+                จัดการผู้เช่า
+            </h2>
+
+            <p class="dorm-subtitle">
+                จัดการข้อมูลผู้เช่าและตรวจสอบสถานะการเข้าพัก
+            </p>
+        </div>
+
+        <div class="text-sm text-gray-500">
+            ผู้ดูแลระบบ
+        </div>
+    </div>
+</x-slot>
+
+<div class="py-6 sm:py-8">
+
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+
+        {{-- แจ้งเตือนสำเร็จ --}}
+        @if (session('success'))
+            <div class="dorm-alert-success mb-6">
+                <div class="flex items-center gap-2">
+                    <span class="font-bold">✓</span>
+                    <span>{{ session('success') }}</span>
+                </div>
+            </div>
+        @endif
+
+        {{-- แจ้งเตือนรหัสเชื่อม LINE --}}
+        @if (session('line_link_code'))
+            <div class="mb-6 rounded-xl border border-green-200 bg-green-50 p-5">
+                <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-green-100 text-green-700">
+                                ✓
+                            </span>
+
+                            <h3 class="font-bold text-green-900">
+                                สร้างรหัสเชื่อม LINE สำเร็จ
+                            </h3>
+                        </div>
+
+                        <p class="mt-2 text-sm text-green-800">
+                            ผู้เช่า:
+                            <span class="font-semibold">
+                                {{ session('line_link_code.tenant_name') }}
+                            </span>
+                        </p>
+
+                        <p class="mt-1 text-sm text-green-700">
+                            ให้ผู้เช่าส่งข้อความใน LINE ว่า
+                            <span class="font-semibold">
+                                ผูกบัญชี {{ session('line_link_code.code') }}
+                            </span>
+                        </p>
+                    </div>
+
+                    <div class="shrink-0 rounded-xl border border-green-200 bg-white px-5 py-4 text-center shadow-sm">
+
+                        <p class="text-xs font-medium text-gray-500">
+                            รหัสเชื่อม LINE
+                        </p>
+
+                        <p class="mt-1 text-2xl font-bold tracking-wider text-green-700">
+                            {{ session('line_link_code.code') }}
+                        </p>
+
+                        <p class="mt-2 text-xs text-gray-500">
+                            หมดอายุ {{ session('line_link_code.expires_at') }}
+                        </p>
+
+                    </div>
+
+                </div>
+            </div>
+        @endif
+
+        {{-- แจ้งเตือนข้อผิดพลาด --}}
+        @if ($errors->any())
+            <div class="dorm-alert-danger mb-6">
+                <div class="font-semibold">
+                    กรุณาตรวจสอบข้อมูล
+                </div>
+
+                <ul class="mt-2 list-inside list-disc space-y-1">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
+        {{-- Main Card --}}
+        <div class="dorm-card overflow-hidden">
+
+            {{-- Card Header --}}
+            <div class="border-b border-gray-200 p-5 sm:p-6">
+
+                <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+
+                    <div class="flex items-center gap-3">
+
+                        <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-700">
+                            <svg
+                                class="h-6 w-6"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                                aria-hidden="true"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8zM22 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"
+                                />
+                            </svg>
+                        </div>
+
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-900">
+                                รายการผู้เช่า
+                            </h3>
+
+                            <p class="mt-1 text-sm text-gray-500">
+                                ข้อมูลผู้เช่าทั้งหมดของหอพัก
+                            </p>
+                        </div>
+
+                    </div>
+
+                    <a
+                        href="{{ route('tenants.create') }}"
+                        class="btn-primary w-full sm:w-auto"
+                    >
+                        <span class="text-lg leading-none">+</span>
+                        เพิ่มผู้เช่า
+                    </a>
+
+                </div>
+
+            </div>
+
+            {{-- Summary --}}
+            <div class="border-b border-gray-200 bg-gray-50 px-5 py-4 sm:px-6">
+
+                <div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+
+                    <div>
+                        <p class="text-sm text-gray-500">
+                            จำนวนผู้เช่าทั้งหมด
+                        </p>
+
+                        <p class="mt-1 text-2xl font-bold text-gray-900">
+                            {{ $tenants->count() }}
+                            <span class="text-sm font-medium text-gray-500">
+                                คน
+                            </span>
+                        </p>
+                    </div>
+
+                    <div class="text-sm text-gray-500">
+                        รายการผู้เช่าที่อยู่ในระบบ
+                    </div>
+
+                </div>
+
+            </div>
+
+            {{-- Tenant Table --}}
+            @if ($tenants->count() > 0)
+
+                <div class="overflow-x-auto">
+
+                    <table class="dorm-table">
+
+                        <thead>
+                            <tr>
+
+                                <th scope="col">
+                                    ชื่อผู้เช่า
+                                </th>
+
+                                <th scope="col" class="text-center">
+                                    เลขบัตรประชาชน
+                                </th>
+
+                                <th scope="col" class="text-center">
+                                    เบอร์โทรศัพท์
+                                </th>
+
+                                <th scope="col" class="text-center">
+                                    ห้อง
+                                </th>
+
+                                <th scope="col" class="text-center">
+                                    วันที่เข้าพัก
+                                </th>
+
+                                <th scope="col" class="text-right">
+                                    เงินประกัน
+                                </th>
+
+                                <th scope="col" class="text-center">
+                                    สถานะ
+                                </th>
+
+                                <th scope="col" class="text-center">
+                                    LINE
+                                </th>
+
+                                <th scope="col" class="text-center">
+                                    จัดการ
+                                </th>
+
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            @foreach ($tenants as $tenant)
+
+                                <tr>
+
+                                    {{-- ชื่อผู้เช่า --}}
+                                    <td>
+
+                                        <div class="font-semibold text-gray-900">
+                                            {{ $tenant->name }}
+                                        </div>
+
+                                        @if ($tenant->email)
+                                            <div class="mt-1 text-xs text-gray-500">
+                                                {{ $tenant->email }}
+                                            </div>
+                                        @endif
+
+                                    </td>
+
+                                    {{-- เลขบัตรประชาชน --}}
+                                    <td class="text-center">
+                                        {{ $tenant->id_card ?: '-' }}
+                                    </td>
+
+                                    {{-- เบอร์โทรศัพท์ --}}
+                                    <td class="text-center">
+                                        {{ $tenant->phone ?: '-' }}
+                                    </td>
+
+                                    {{-- ห้อง --}}
+                                    <td class="text-center">
+
+                                        @if ($tenant->room)
+
+                                            <span class="inline-flex items-center rounded-lg bg-gray-100 px-3 py-1.5 text-sm font-semibold text-gray-800">
+                                                ห้อง {{ $tenant->room->room_number }}
+                                            </span>
+
+                                        @else
+
+                                            <span class="text-sm text-gray-400">
+                                                -
+                                            </span>
+
+                                        @endif
+
+                                    </td>
+
+                                    {{-- วันที่เข้าพัก --}}
+                                    <td class="text-center">
+
+                                        {{ $tenant->move_in_date?->format('d/m/Y') ?? '-' }}
+
+                                    </td>
+
+                                    {{-- เงินประกัน --}}
+                                    <td class="text-right">
+
+                                        <span class="text-sm font-semibold text-gray-900">
+                                            {{ number_format((float) $tenant->deposit, 2) }}
+                                        </span>
+
+                                        <span class="text-xs text-gray-500">
+                                            บาท
+                                        </span>
+
+                                    </td>
+
+                                    {{-- สถานะ --}}
+                                    <td class="text-center">
+
+                                        @if ($tenant->status === 'พักอาศัย')
+
+                                            <span class="status-success">
+                                                <span class="h-1.5 w-1.5 rounded-full bg-green-500"></span>
+                                                พักอาศัย
+                                            </span>
+
+                                        @elseif ($tenant->status === 'ย้ายออก')
+
+                                            <span class="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-700">
+                                                <span class="h-1.5 w-1.5 rounded-full bg-gray-400"></span>
+                                                ย้ายออก
+                                            </span>
+
+                                        @else
+
+                                            <span class="status-warning">
+                                                <span class="h-1.5 w-1.5 rounded-full bg-yellow-500"></span>
+                                                {{ $tenant->status ?: '-' }}
+                                            </span>
+
+                                        @endif
+
+                                    </td>
+
+                                    {{-- LINE --}}
+                                    <td class="text-center">
+
+                                        @if ($tenant->line_user_id)
+
+                                            <span class="inline-flex items-center gap-1 rounded-full bg-green-50 px-2.5 py-1 text-xs font-semibold text-green-700">
+                                                <span class="h-1.5 w-1.5 rounded-full bg-green-500"></span>
+                                                เชื่อมแล้ว
+                                            </span>
+
+                                        @else
+
+                                            <form
+                                                action="{{ route('tenants.line-link.generate', $tenant) }}"
+                                                method="POST"
+                                                onsubmit="return confirm('ต้องการสร้างรหัสเชื่อม LINE สำหรับ {{ $tenant->name }} ใช่หรือไม่?')"
+                                            >
+
+                                                @csrf
+
+                                                <button
+                                                    type="submit"
+                                                    class="inline-flex items-center justify-center rounded-lg bg-green-50 px-3 py-2 text-xs font-semibold text-green-700 transition hover:bg-green-100 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                                                >
+                                                    เชื่อม LINE
+                                                </button>
+
+                                            </form>
+
+                                        @endif
+
+                                    </td>
+
+                                    {{-- จัดการ --}}
+                                    <td>
+
+                                        <div class="flex items-center justify-center gap-2">
+
+                                            <a
+                                                href="{{ route('tenants.edit', $tenant->id) }}"
+                                                class="table-action-edit"
+                                            >
+                                                แก้ไข
+                                            </a>
+
+                                            <form
+                                                action="{{ route('tenants.destroy', $tenant->id) }}"
+                                                method="POST"
+                                                onsubmit="return confirm('คุณต้องการลบผู้เช่า {{ $tenant->name }} ใช่หรือไม่?')"
+                                            >
+
+                                                @csrf
+                                                @method('DELETE')
+
+                                                <button
+                                                    type="submit"
+                                                    class="table-action-delete"
+                                                >
+                                                    ลบ
+                                                </button>
+
+                                            </form>
+
+                                        </div>
+
+                                    </td>
+
+                                </tr>
+
+                            @endforeach
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            @else
+
+                {{-- Empty State --}}
+                <div class="dorm-empty">
+
+                    <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-50 text-blue-700">
+
+                        <svg
+                            class="h-8 w-8"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                            aria-hidden="true"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8z"
+                            />
+                        </svg>
+
+                    </div>
+
+                    <h3 class="mt-4 text-lg font-bold text-gray-900">
+                        ยังไม่มีข้อมูลผู้เช่า
+                    </h3>
+
+                    <p class="mt-1 text-sm text-gray-500">
+                        เริ่มต้นด้วยการเพิ่มผู้เช่าเข้าสู่ระบบ
+                    </p>
+
+                    <a
+                        href="{{ route('tenants.create') }}"
+                        class="btn-primary mt-5"
+                    >
+                        <span class="text-lg leading-none">+</span>
+                        เพิ่มผู้เช่าคนแรก
+                    </a>
+
+                </div>
+
+            @endif
+
+        </div>
+
+    </div>
+
+</div>
+
+</x-app-layout>
